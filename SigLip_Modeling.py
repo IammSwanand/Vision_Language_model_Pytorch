@@ -58,15 +58,15 @@ class SiglipVisionEmbeddings(nn.Module):
 
     def forward(self, pixel_values: torch.FloatTensor) -> torch.Tensor:
         _, _, height, width = pixel_values.shape
-        #add comment here
+        
         patch_embeds = self.patch_embedding(pixel_values)
-        #add comment here
+        
         embeddings = patch_embeds.flatten(2)
-        #add comment here
+        
         embeddings = embeddings.transpose(1, 2)
-        #add comment here
+        
         embeddings = embeddings + self.position_embedding(self.position_ids)
-        #add comment here
+        
         return embeddings
     
 class SiglipAttention(nn.Module):
