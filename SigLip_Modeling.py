@@ -96,6 +96,15 @@ class SiglipAttention(nn.Module):
         query_states = query_states.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         key_states = key_states.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         value_states = value_states.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        attn_weights = (torch.matmul(query_states, key_states.transpose(2, 3)) * self.scale)
+
+        if attn_weights.size() != (batch_size, self.num_heads, seq_len, seq_len):
+            raise ValueError(
+                f"Attention weights should be of size {(batch_size, self.num_heads, seq_len, seq_len)}, but is"
+                f" {attn_weights.size()}"
+            )
+        
+        attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
     
 class SiglipMLP(nn.Module):
     def __init__(self, config):
