@@ -119,6 +119,11 @@ class SiglipAttention(nn.Module):
         attn_output = attn_output.transpose(1,2).contiguous()
 
         attn_output = attn_output.reshape(batch_size, seq_len, self.embed_dim)
+
+        attn_output = self.out_proj(attn_output)
+
+        return attn_output, attn_weights
+    
     
 class SiglipMLP(nn.Module):
     def __init__(self, config):
@@ -155,6 +160,25 @@ class SiglipEncoderLayer(nn.Module):
         hidden_states = self.mlp(hidden_states)
         hidden_states = residual + hidden_states
         return hidden_states
+    
+class SiglipEncoder(nn.Module):
+    def __init__(self, config: SiglipVisionConfig):
+        super().__init__()
+        self.config = config
+        self.layers = nn.ModuleList(
+            [SiglipEncoderLayer(config) for _ in range(config.num_hidden_layers)]
+            )
+        
+    def forward(
+            self, 
+            inputs_embeds: torch.Tensor,
+        ) -> torch.Tensor:
+            hidden_states = inputs_embeds
+
+            for encoder_layer in self.layers:
+                hidden_states = encoder_layer(hidden_states)
+            
+            return hidden_states
 
 class SiglipVisionTransformer(nn.Module):
     def __init__(self, config: SiglipVisionConfig):
