@@ -5,7 +5,7 @@ import torch
 IMAGENET_STANDARD_MEAN = [0.5, 0.5, 0.5] #RGB
 IMAGENET_STANDARD_STD = [0.5, 0.5, 0.5]
 
-def add_image_tokens_to_prompt(prefix_prompt, bos_token, image_seq_len, image_token):
+def add_image_tokens_to_prompt(prefix_prompt, bos_token, image_seq_len, image_token): #bos -> beginning of sentence (same for eos)
 
     return f"{image_token * image_seq_len}{bos_token}{prefix_prompt}\n" #\n should be tokenized differently, but as per HF it should be like this only.
     
