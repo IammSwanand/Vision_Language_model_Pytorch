@@ -5,6 +5,10 @@ import torch
 IMAGENET_STANDARD_MEAN = [0.5, 0.5, 0.5] #RGB
 IMAGENET_STANDARD_STD = [0.5, 0.5, 0.5]
 
+def add_image_tokens_to_prompt(prefix_prompt, bos_token, image_seq_len, image_token):
+
+    return f"{image_token * image_seq_len}{bos_token}{prefix_prompt}\n" #\n should be tokenized differently, but as per HF it should be like this only.
+    
 def resize(
     image: Image,
     size: Tuple[int, int],
@@ -102,7 +106,7 @@ class PaliGemmaProcessor:
         )
 
         pixel_values = np.stack(pixel_values, axis=0) #converted the pixel values into the array
-        pixel_values = torch.tensor(pixel_values) #converted into tensor
+        pixel_values = torch.tensor(pixel_values) #converted into tensor values
 
         input_strings = [
             add_image_tokens_to_prompt(
