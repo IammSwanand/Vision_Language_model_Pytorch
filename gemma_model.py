@@ -116,6 +116,36 @@ class PaliGemmaForConditionalGeneration(nn.Module):
 
 
 
+        dtype, device = inputs_embeds.dtype, inputs_embeds.device
+        min_dtype = torch.finfo(dtype).min
+        q_len = inputs_embeds.shape[1]
+
+        if kv_cache is None or kv_cache.num_items() == 0:
+
+            casual_mask = torch.full(
+                (batch_size, q_len, q_len), fill_value=0, dtype=dtype, device=device
+            )
+        else:
+            
+            assert q_len == 1
+            kv_len = kv_cache.num_items() + q_len
+
+            casual_mask = torch.full(
+                (batch_size, q_len, kv_len), fill_value=0, dtype=dtype, device=device
+            )
+
+        casual_mask = casual_mask.unsqueeze(1)
+
+        if kv_cache is not None and kv_cache.num_items() > 0:
+            position_ids = attention_mask.cumsum(-1)[:, -1]
+            if position_ids.dim() ==1:
+                position_ids = position_ids.unsqueeze(0)
+        else:
+            position_ids = (attention_mask.cumsum(-1)).masked_fill_((attention_mask == 0), 1). to(device)
+
+        return final_embedding, casual_mask, position_ids
+
+
     def forward(
             self,
             input_ids: torch.LongTensor = None,
