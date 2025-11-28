@@ -72,6 +72,15 @@ class PaliGemmaConfig():
         self.text_config.num_image_tokens = (self.vision_config.image_size // self.vision_config.patch_size) ** 2
         self.vision_config.projection_dim = projection_dim
 
+class PaliGemmaMultiModalProjector(nn.Module):
+    def __init__(self, config: PaliGemmaConfig):
+        super().__init__()
+        self.linear = nn.Linear(config.vision_config.hidden_size, config.vision_config.projection_dim, bias= True)
+
+    def forward(self, image_features):
+        hidden_states = self.linear(image_features)
+        return hidden_states
+
 class PaliGemmaForConditionalGeneration(nn.Module):
     def __init__(self, config: PaliGemmaConfig):
         super().__init__()
@@ -113,8 +122,6 @@ class PaliGemmaForConditionalGeneration(nn.Module):
         final_embedding = final_embedding.masked_scatter(image_mask_expanded, scaled_image_features)
 
         final_embedding = torch.where(pad_mask_expanded, torch.zeros_like(final_embedding), final_embedding)
-
-
 
         dtype, device = inputs_embeds.dtype, inputs_embeds.device
         min_dtype = torch.finfo(dtype).min
