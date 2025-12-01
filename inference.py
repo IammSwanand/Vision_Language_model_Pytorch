@@ -36,7 +36,7 @@ def main(
 
     print("Running Inference...")
     with torch.no_grad():
-        main_inference(
+        test_inference(
             model,
             processor, 
             device, 
