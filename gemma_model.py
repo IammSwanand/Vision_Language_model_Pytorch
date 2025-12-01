@@ -128,6 +128,29 @@ class GemmaAttention(nn.Module):
         self.v_proj = nn.Linear(self.hidden_size, self.num_key_value_heads * self.head_dim, bias = config.attention_bias)
         self.o_proj = nn.Linear(self.num_heads * self.head_dim, self.hidden_size, bias = config.attention_bias)
 
+        self.rotary_emb = GemmaRotaryEmbedding(
+            self.head_dim,
+            max_position_embeddings = self.max_position_embeddings,
+            theta = self.rope_theta,
+        )
+
+        def forward(
+            self,
+            hidden_states: torch.Tensor,
+            attention_mask: Optional[torch.Tensor] = None,
+            position_ids: Optional[torch.LongTensor] = None,
+            kv_cache: Optional[KVCache] = None,
+            **kwargs,
+         ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]]]:
+            
+            bsz, q_len, _ = hidden_states.size()
+            query_states = self.q_proj(hidden_states)
+            key_states = self.k_proj(hidden_states)
+            value_states = self.v_proj(hidden_states)
+            query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
+            key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+            value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+
 
 class GemmaDecoderLayer(nn.Module):
 
